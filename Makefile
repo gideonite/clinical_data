@@ -2,7 +2,7 @@ all: all_drugs wrangle
 
 # gets all the drugs names out of the appropriate files
 all_drugs:
-	find .. -name '*.clin.merged.txt' | xargs grep 'drugname' >all_drugs.tsv
+	find data -name '*.clin.merged.txt' | xargs grep 'drugname' >all_drugs.tsv
 
 # gives a json [list of { cancer, drug,  count } ]
 wrangle: all_drugs
