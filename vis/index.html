@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<body></body>
+<head>
+<title>FIXME</title>
+<!--
+<link rel="stylesheet" type="text/css" href="FIXME" />
+<script type="text/javascript" src="FIXME"></script>
+<style type="text/css">
+/* <![CDATA[ */
+/* ]]> */
+</style>
+-->
+<script type="text/javascript" src="d3.v2.min.js"></script>
+<script type="text/javascript" src="colorbrewer.js"></script>
+<script type="text/javascript">
+
+var filter_uniq = function(l, key) {        // TODO: write a test?
+    var x = l.map(function(i) { return i[key]; });
+    return x.filter(function(val, i) { return x.indexOf(val) === i; });
+};
+
+var margin = {top: 80, right: 0, bottom: 10, left: 80},
+    width = 720 * 8,
+    height = 720 * 2;
+
+var cancerScale = d3.scale.ordinal().rangeBands([0, height]);
+var drugScale = d3.scale.ordinal().rangeBands([0, width]);
+var z = d3.scale.ordinal();
+//z.range([.5, 1]);
+
+var colors = colorbrewer.RdBu[9].reverse().slice(5);
+z.range(colors);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .style("margin-left", margin.left + "px")
+.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.json('data.json', function(data) {
+        var cols = filter_uniq(data, 'drug');
+        drugScale.domain(cols);
+
+        var rows = filter_uniq(data, 'cancer');
+        cancerScale.domain(rows);
+
+        var counts = data.map(function(d) { return d.count; });
+        z.domain(filter_uniq(data, 'count').sort());
+        //z.domain([d3.min(counts), d3.max(counts)]);
+
+        svg.selectAll('rect')
+        .data(data)
+        .enter()
+        .append('rect')
+        .attr('x', function(d) { return drugScale(d.drug); })
+        .attr('y', function(d) { return cancerScale(d.cancer); })
+        .attr('height', cancerScale.rangeBand() / 2.0)
+        .attr('width', drugScale.rangeBand() )
+        //.attr('r', function(d) { return z(d.count); })
+        .style('fill', function(d) { return z(d.count); });
+
+        // key
+        var key = d3.select('body')
+            .append('svg')
+            .attr('width', colors.length * drugScale.rangeBand() + 150)
+            .attr('height', cancerScale.rangeBand());
+
+        key.append('text')
+            .attr('x', 0)
+            .attr('y', 15)
+            .text('fewer patients -> more patients');
+
+        key.selectAll('rect')
+            .data(colors).enter()
+            .append('rect')
+            .attr('height', cancerScale.rangeBand() / 2.0)
+            .attr('width', drugScale.rangeBand() )
+            .attr('x', function(d, i) { return i * drugScale.rangeBand(); })
+            .attr('y', cancerScale.rangeBand() / 2)
+            .attr('fill', function(d) { return d; });
+
+        // axises
+        var cancerAxis = d3.svg.axis();
+        cancerAxis = cancerAxis.scale(cancerScale)
+            .orient('left');
+        svg.append('g')
+            .attr('transform', 'translate(0, -' + cancerScale.rangeBand() / 4 + ')')
+            .call(cancerAxis)
+});
+
+
+</script>
+</head>
+</html>
