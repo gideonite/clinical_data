@@ -9,11 +9,11 @@ wrangle: all_drugs
 	./wrangle.py all_drugs.tsv >vis/data.json
 
 # downloads data from broad
-download:
+download: .
 	./download.py
 
 # starts up a server for the d3 vis
-vis: wrangle
+vis: .
 	python -m SimpleHTTPServer
 
 push: all
