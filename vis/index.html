@@ -21,12 +21,12 @@ var filter_uniq = function(l, key) {        // TODO: write a test?
     return x.filter(function(val, i) { return x.indexOf(val) === i; });
 };
 
-var margin = {top: 80, right: 0, bottom: 10, left: 80},
-    width = 720 * 8,
-    height = 720 * 2;
+var margin = {top: 80, right: 300, bottom: 10, left: 20},
+    height = 720 * 8 + 10000,
+    width = 720 * 1.5;
 
-var cancerScale = d3.scale.ordinal().rangeBands([0, height]);
-var drugScale = d3.scale.ordinal().rangeBands([0, width]);
+var cancerScale = d3.scale.ordinal().rangeBands([0, width]);
+var drugScale = d3.scale.ordinal().rangeBands([0, height]);
 var z = d3.scale.ordinal();
 //z.range([.5, 1]);
 
@@ -37,6 +37,7 @@ var svg = d3.select("body").append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .style("margin-left", margin.left + "px")
+    .style("margin-right", margin.right + "px")
 .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -64,7 +65,7 @@ d3.json('data.json', function(data) {
 
         // key
         var key = d3.select('body')
-            .append('svg')
+            .append('svg')      // prepend?
             .attr('width', colors.length * drugScale.rangeBand() + 150)
             .attr('height', cancerScale.rangeBand());
 
@@ -83,14 +84,20 @@ d3.json('data.json', function(data) {
             .attr('fill', function(d) { return d; });
 
         // axises
-        //var cancerAxis = d3.svg.axis();
-        //cancerAxis = cancerAxis.scale(cancerScale)
-        //    .orient('left');
-        //svg.append('g')
-        //    .attr('transform', 'translate(0, -' + cancerScale.rangeBand() / 4 + ')')
-        //    .call(cancerAxis)
-});
+        var cancerAxis = d3.svg.axis();
+        cancerAxis = cancerAxis.scale(cancerScale)
+            .orient('top');
+        svg.append('g')
+            .attr('transform', 'translate(-' + cancerScale.rangeBand() / 4 + ',0)')
+            .call(cancerAxis);
 
+        var drugAxis = d3.svg.axis();
+        drugAxis = drugAxis.scale(drugScale)
+            .orient('right');
+        svg.append('g')
+            .attr('transform', 'translate(' + width  +',0)')
+            .call(drugAxis);
+});
 
 </script>
 </head>
