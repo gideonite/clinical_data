@@ -61,7 +61,9 @@ d3.json('data.json', function(data) {
         .attr('width', cancerScale.rangeBand() / 2.0)
         .attr('height', drugScale.rangeBand() )
         //.attr('r', function(d) { return z(d.count); })
-        .style('fill', function(d) { return z(d.count); });
+        .style('fill', function(d) { return z(d.count); })
+            .append('svg:title')
+        .text(function(d) { return "" + d.cancer + ", " + d.drug; });
 
         // key
         var key = d3.select('body')
@@ -81,14 +83,16 @@ d3.json('data.json', function(data) {
             .attr('width', drugScale.rangeBand() )
             .attr('x', function(d, i) { return i * drugScale.rangeBand(); })
             .attr('y', cancerScale.rangeBand() / 2)
-            .attr('fill', function(d) { return d; });
+            .attr('fill', function(d) { return d; })
+
 
         // axises
         var cancerAxis = d3.svg.axis();
         cancerAxis = cancerAxis.scale(cancerScale)
             .orient('top');
         svg.append('g')
-            .attr('transform', 'translate(-' + cancerScale.rangeBand() / 4 + ',0)')
+            .attr('id', 'cancer-axis')
+            .attr('transform', 'translate(0, -10)')
             .call(cancerAxis);
 
         var drugAxis = d3.svg.axis();
@@ -97,6 +101,15 @@ d3.json('data.json', function(data) {
         svg.append('g')
             .attr('transform', 'translate(' + width  +',0)')
             .call(drugAxis);
+
+
+        // styling
+        d3.selectAll('#cancer-axis text')
+            .attr('padding-bottom', '10px')
+            .attr('transform', 'rotate(-90)')
+            .attr('text-anchor', 'top');
+        d3.select('#cancer-axis path')
+            .attr('fill', 'none');
 });
 
 </script>
