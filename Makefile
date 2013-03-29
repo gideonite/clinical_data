@@ -1,20 +1,19 @@
-all: all_drugs wrangle
+all: wrangle
 
-# gets all the drugs names out of the appropriate files
-all_drugs:
-	find data -name '*.clin.merged.txt' | xargs grep 'drugname' >all_drugs.tsv
-
-# gives a json [list of { cancer, drug,  count } ]
-wrangle: all_drugs
-	./wrangle.py all_drugs.tsv >vis/data.json
+# gives a json [list of { cancer, drug-1, drug-2, etc, patient-id } ]
+wrangle:
+	rm vis/data.json
+	./wrangle-wrap.sh >>vis/data.json
 
 # downloads data from broad
-download: .
+download: FORCE
 	./download.py
 
 # starts up a server for the d3 vis
-vis: .
+vis: FORCE
 	python -m SimpleHTTPServer
+
+FORCE:
 
 push: all
 	cp -r vis clinical

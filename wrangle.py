@@ -2,34 +2,55 @@
 
 import sys
 import os.path
+import pandas
 import re
 import matplotlib
 import json
+
+# synonyms : alias -> standard
+synonyms = dict([
+    ("5fluorouracil", "5fu"),
+    ("5fu", "5fu"),
+    ("5 fu", "5fu"),
+    ("5-fu", "5fu"),
+    ("5 fluorouracil", "5fu"),
+    ("5-fluorouracil", "5fu"),
+    ("5- fu", "5fu")
+    ])
 
 # cancer_type -> [ list of drugs used on patients (*not* a unique list) ]
 cancer2drugs = {}
 
 drug2count = {}
 
-with open(sys.argv[1]) as all_drugs:
-    for line in all_drugs.readlines():
-        line = line.split("\t")
-        cancer_type = re.sub("\..*","", os.path.basename(line[0]))
-        drugs_per_patient = filter(lambda x: x != "NA",         # filter out NAs
-                map(lambda x: x.strip(), line[1:]))             # after having stripped everything
+attributes = [
+        'patient.bcrpatientbarcode',
+        'drugname'  # contains this?  let's find the actual names and just include them here.
+        ]
 
-        # fill the dict cancer2drugs
-        if not cancer2drugs.has_key(cancer_type):
-            cancer2drugs[cancer_type] = drugs_per_patient
-        else:
-            cancer2drugs[cancer_type] = cancer2drugs[cancer_type] + drugs_per_patient
+patient_id = 'patient.bcrpatientbarcode'
+drugname = lambda x: re.match("^.*\.drugname$", x) == None
 
-l = []      # [ list of { 'cancer', 'drug', 'count' } ]
-for cancer in cancer2drugs.keys():
-    drugs = cancer2drugs[cancer]
-    drugs2count = dict( (i, drugs.count(i)) for i in drugs )
+with open(sys.argv[1]) as f:
+    csv = pandas.read_csv(f, sep="\t")
+    csv = csv.transpose()       # data is initially a matrix [ attr X patient ]
+    csv.columns = csv.ix[0,:]   # get that first row to be the column names
 
-    for drug in drugs2count.keys():
-        l.append(dict( (('cancer', cancer), ('drug', drug), ('count', drugs2count[drug])) ))
+    keeper_cols = filter(
+        (lambda x: x == 'patient.bcrpatientbarcode' \
+            or re.match("^.*\.drugname$", x) != None \
+            ), csv.columns)
 
-print json.dumps(l)
+    extracted_cols = csv[keeper_cols]
+
+    d = [ [ (colname, row[i]) for i, colname in enumerate(extracted_cols) ] for row in extracted_cols.values ]
+    # thanks mike! <https://gist.github.com/mikedewar/1486027>
+
+    d = d[1:]                               # the first row is a bunch of nonesense
+
+    # make a true list of dicts
+    # and add in the cancer type
+    cancer_type = re.sub("\..*","", os.path.basename(sys.argv[1]))
+    d = map(lambda i: dict( tuple(i + [('cancer', cancer_type)]) ), d)
+    out = json.dumps(d, indent=1)
+    print out

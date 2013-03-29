@@ -81,10 +81,12 @@ d3.json('data.json', function(data) {
             .append('rect')
             .attr('height', cancerScale.rangeBand() / 2.0)
             .attr('width', drugScale.rangeBand() )
-            .attr('x', function(d, i) { return i * drugScale.rangeBand(); })
+            .attr('x', function(d, i) {
+                    // use this to get the threshold for each color
+                    //console.log(i * drugScale.rangeBand());
+                    return i * drugScale.rangeBand(); })
             .attr('y', cancerScale.rangeBand() / 2)
             .attr('fill', function(d) { return d; })
-
 
         // axises
         var cancerAxis = d3.svg.axis();
@@ -101,7 +103,6 @@ d3.json('data.json', function(data) {
         svg.append('g')
             .attr('transform', 'translate(' + width  +',0)')
             .call(drugAxis);
-
 
         // styling
         d3.selectAll('#cancer-axis text')
